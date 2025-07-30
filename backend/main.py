@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import List, Optional
@@ -9,7 +9,7 @@ app = FastAPI(title="CareerPact API", version="1.0.0")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://localhost:5173"],
+    allow_origins=["http://localhost:3000", "http://localhost:5173", "http://127.0.0.1:5173"],
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
@@ -72,6 +72,13 @@ async def create_or_update_profile(profile: UserProfile):
     user_id = "user_1"  # 実際の実装では認証から取得
     user_profiles[user_id] = profile
     return {"message": "プロフィールが保存されました", "user_id": user_id}
+
+@app.get("/profile")
+async def get_current_profile():
+    user_id = "user_1"  # 実際の実装では認証から取得
+    if user_id not in user_profiles:
+        return {"error": "プロフィールが見つかりません", "profile": None}
+    return {"profile": user_profiles[user_id]}
 
 @app.get("/profile/{user_id}")
 async def get_profile(user_id: str):
